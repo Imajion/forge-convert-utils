@@ -3,8 +3,8 @@ import * as fse from 'fs-extra';
 import Zip from 'adm-zip';
 import { isNullOrUndefined } from 'util';
 
-import { ModelDerivativeClient, ManifestHelper, IDerivativeResourceChild } from 'forge-server-utils';
-import { IAuthOptions, Region } from 'forge-server-utils/dist/common';
+import { ModelDerivativeClient, ManifestHelper, IDerivativeResourceChild } from 'forge-server-utils-sitelink';
+import { IAuthOptions, Region } from 'forge-server-utils-sitelink/dist/common';
 import { PropDbReader } from '../common/propdb-reader';
 import { parseFragments } from './fragments';
 import { parseGeometries } from './geometries';
@@ -294,7 +294,7 @@ export class Reader {
         const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
         for (let i = 0, len = this.getMeshPackCount(); i < len; i++) {
             tasks.push((async (id: number) => {
-                await sleep(id * 1000);
+                // await sleep(id * 1000);
                 log(`Reading meshpack #${id} of ${len - 1}...`);
                 output.meshpacks[id] = await this.readMeshPack(id);
                 log(`Reading meshpack #${id} of ${len - 1}: done`);

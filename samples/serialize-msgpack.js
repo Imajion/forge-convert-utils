@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { pack } = require('msgpackr');
-const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils');
+const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils-sitelink');
 const { SvfReader, GltfWriter } = require('..');
 
 class MsgpackGltfWriter extends GltfWriter {

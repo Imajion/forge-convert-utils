@@ -8,7 +8,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils');
+const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils-sitelink');
 const { SvfReader, GltfWriter } = require('..');
 
 const { FORGE_CLIENT_ID, FORGE_CLIENT_SECRET } = process.env;

@@ -1,8 +1,8 @@
 import * as path from 'path';
 import * as zlib from 'zlib';
 import * as fse from 'fs-extra';
-import { ModelDerivativeClient, ManifestHelper, IDerivativeResourceChild } from 'forge-server-utils';
-import { IAuthOptions } from 'forge-server-utils/dist/common';
+import { ModelDerivativeClient, ManifestHelper, IDerivativeResourceChild } from 'forge-server-utils-sitelink';
+import { IAuthOptions } from 'forge-server-utils-sitelink/dist/common';
 
 export interface IDownloadOptions {
     outputDir?: string;

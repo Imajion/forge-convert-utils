@@ -3,7 +3,7 @@
 const program = require('commander');
 const path = require('path');
 const fse = require('fs-extra');
-const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils');
+const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils-sitelink');
 
 const { SvfReader, GltfWriter } = require('..');
 

@@ -8,7 +8,7 @@
  */
 
 const path = require('path');
-const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils');
+const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils-sitelink');
 const { SvfReader, GltfWriter } = require('..');
 
 /*

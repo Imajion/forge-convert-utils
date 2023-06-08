@@ -6,7 +6,7 @@
  *     node remote-svf-props.js <your model urn>
  */
 
-const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils');
+const { ModelDerivativeClient, ManifestHelper } = require('forge-server-utils-sitelink');
 const { SvfReader } = require('..');
 
 const { FORGE_CLIENT_ID, FORGE_CLIENT_SECRET } = process.env;
