@@ -24,6 +24,7 @@ export interface IWriterOptions {
     deduplicate?: boolean; /** Find and remove mesh geometry duplicates (increases the processing time) */
     skipUnusedUvs?: boolean; /** Skip unused tex coordinates. */
     center?: boolean; /** Move the model to origin. */
+    centerOnTranslation?: number[] /** Will use these coordinates to center a model */
     log?: (msg: string) => void; /** Optional logging function. */
     filter?: (dbid: number) => boolean;
 }
@@ -74,6 +75,7 @@ export class Writer {
             deduplicate: !!options.deduplicate,
             skipUnusedUvs: !!options.skipUnusedUvs,
             center: !!options.center,
+            centerOnTranslation: isNullOrUndefined(options.centerOnTranslation) ? [] : options.centerOnTranslation,
             log: (options && options.log) || function (msg: string) {},
             filter: options && options.filter || ((dbid: number) => true)
         };
@@ -226,6 +228,10 @@ export class Writer {
             }
         }
         // Setup translation to origin when enabled
+        if(this.options.center && this.options.centerOnTranslation.length > 0){
+            console.error("Unable to process centering, both center AND centerOnTranslation provided. Defaulting to centerOnTranslation");
+            this.options.center = false;
+        }
         if (metadata['world bounding box'] && this.options.center) {
             const boundsMin = metadata['world bounding box'].minXYZ;
             const boundsMax = metadata['world bounding box'].maxXYZ;
@@ -243,7 +249,20 @@ export class Writer {
                 ];
             }
         }
-
+        else if(this.options.centerOnTranslation.length > 0){
+            const [x, y, z] = this.options.centerOnTranslation
+            if(!x || !y || !z){
+                console.error("Missing part of/malformed transform")
+            }
+            else{
+                xformNode.matrix = [
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    x, y, z, 1
+                ];
+            }
+        }
         const nodeIndices = (xformNode.children as number[]);
         this.options.log(`Writing scene nodes...`);
         const { filter } = this.options;
