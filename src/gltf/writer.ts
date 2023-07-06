@@ -251,8 +251,8 @@ export class Writer {
         }
         else if(this.options.centerOnTranslation.length > 0){
             const [x, y, z] = this.options.centerOnTranslation
-            if(!x || !y || !z){
-                console.error("Missing part of/malformed transform")
+            if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') {
+                console.error("X, y or Z not a number")
             }
             else{
                 xformNode.matrix = [
