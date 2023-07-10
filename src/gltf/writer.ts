@@ -123,6 +123,13 @@ export class Writer {
         this.options.log(`Closing gltf output: done`);
         this.options.log(`Stats: ${JSON.stringify(this.stats)}`);
         await this.postprocess(imf, gltfPath);
+        if(scene.extras.computedCenter){
+            return Promise.resolve({computedCenter: scene.extras.computedCenter})
+        }
+        else if(scene.extras.metadataCenter){
+            return Promise.resolve({metadataCenter: scene.extras.metadataCenter})
+        }
+        return Promise.resolve(null)
     }
 
     protected reset(outputDir: string) {
@@ -272,6 +279,7 @@ export class Writer {
                     0, 0, 1, 0,
                     -center.x, -center.y, -center.z, 1
                 ];
+                scene.extras.computedCenter = [-center.x, -center.y, -center.z]
             } else if(metadata["world bounding box"]){
                 const boundsMin = metadata['world bounding box'].minXYZ;
                 const boundsMax = metadata['world bounding box'].maxXYZ;
@@ -287,6 +295,7 @@ export class Writer {
                         0, 0, 1, 0,
                         -translation[0], -translation[1], -translation[2], 1
                     ];
+                    scene.extras.metadataCenter = [-translation[0], -translation[1], -translation[2]]
                 }
             }
         }
