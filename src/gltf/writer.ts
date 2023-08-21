@@ -93,10 +93,11 @@ export class Writer {
      * @async
      * @param {IMF.IScene} imf Complete scene in intermediate, in-memory format.
      * @param {string} outputDir Path to output folder.
+     * @param {number[]} metadataFrontVector Whether or not to use the 'front' from the metadata.
      */
-    async write(imf: IMF.IScene, outputDir: string) {
+    async write(imf: IMF.IScene, outputDir: string, metadataFrontVector: number[] | null) {
         this.reset(outputDir);
-        const scene = this.createScene(imf);
+        const scene = this.createScene(imf, metadataFrontVector);
         const scenes = this.manifest.scenes as gltf.Scene[];
         scenes.push(scene);
 
@@ -175,7 +176,7 @@ export class Writer {
         fse.writeFileSync(outputPath, JSON.stringify(manifest, null, 4));
     }
 
-    protected createScene(imf: IMF.IScene): gltf.Scene {
+    protected createScene(imf: IMF.IScene, metadataFrontVector: number[] | null): gltf.Scene {
         fse.ensureDirSync(this.baseDir);
 
         let scene: gltf.Scene = {
@@ -192,7 +193,7 @@ export class Writer {
         const metadata = imf.getMetadata();
         if (metadata['world up vector'] && metadata['world front vector'] && metadata['distance unit']) {
             const up = metadata['world up vector'].XYZ;
-            const front = metadata['world front vector'].XYZ;
+            const front = metadataFrontVector ? metadataFrontVector : metadata['world front vector'].XYZ
             const distanceUnit = metadata['distance unit'].value;
             if (up && front && distanceUnit) {
                 const left = [
