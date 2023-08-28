@@ -184,6 +184,7 @@ export class Writer {
         let scene: gltf.Scene = {
             nodes: []
         };
+        let scale: number = 1.0;
         const manifestNodes = this.manifest.nodes as gltf.Node[];
         const manifestMaterials = this.manifest.materials as gltf.MaterialPbrMetallicRoughness[];
         const rootNode: gltf.Node = { children: [] }; // Root node with transform to glTF coordinate system
@@ -205,7 +206,6 @@ export class Writer {
                 ];
 
                 if (left[0] * left[0] + left[1] * left[1] + left[2] * left[2] > 0.0) {
-                    let scale = 1.0;
                     switch (distanceUnit) {
                         case 'centimeter':
                         case 'cm':
@@ -276,16 +276,18 @@ export class Writer {
         if (this.options.center) {
             if (!totalBounds.empty) {
                 const center = totalBounds.getCenter();
+                //convert to meters
+                const calculatedCenter:number[] = [-center.x*scale, -center.y*scale, -center.z*scale]
                 xformNode.matrix = [
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    -center.x, -center.y, -center.z, 1
+                    calculatedCenter[0], calculatedCenter[1], calculatedCenter[2], 1
                 ];
                 if(!scene.extras){
                     scene.extras = {}
                 }
-                scene.extras.computedCenter = [-center.x, -center.y, -center.z];
+                scene.extras.computedCenter = [calculatedCenter[0], calculatedCenter[1], calculatedCenter[2]];
                 scene.extras.appliedCenter = scene.extras.computedCenter
             } if(metadata["world bounding box"]){
                 const boundsMin = metadata['world bounding box'].minXYZ;
@@ -296,16 +298,18 @@ export class Writer {
                         0.5 * (boundsMin[1] + boundsMax[1]),
                         0.5 * (boundsMin[2] + boundsMax[2])
                     ];
+                    //convert to meters
+                    const calculatedCenter:number[] = [-translation[0]*scale, -translation[1]*scale, -translation[2]*scale]
                     xformNode.matrix = [
                         1, 0, 0, 0,
                         0, 1, 0, 0,
                         0, 0, 1, 0,
-                        -translation[0], -translation[1], -translation[2], 1
+                        calculatedCenter[0], calculatedCenter[1], calculatedCenter[2], 1
                     ];
                     if(!scene.extras){
                         scene.extras = {}
                     }
-                    scene.extras.metadataCenter = [-translation[0], -translation[1], -translation[2]];
+                    scene.extras.metadataCenter = [calculatedCenter[0], calculatedCenter[1], calculatedCenter[2]];
                     if(!scene.extras.appliedCenter){
                         scene.extras.appliedCenter = scene.extras.metadataCenter
                     }
@@ -322,8 +326,12 @@ export class Writer {
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    x, y, z, 1
+                    x * (1/scale), y * (1/scale), z * (1/scale), 1
                 ];
+                //take meters and convert to respective unit
+                if(!scene.extras){
+                    scene.extras = {}
+                }
                 scene.extras.appliedCenter = [x, y, z]
             }
         }
