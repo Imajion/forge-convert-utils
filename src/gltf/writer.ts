@@ -124,11 +124,13 @@ export class Writer {
         this.options.log(`Closing gltf output: done`);
         this.options.log(`Stats: ${JSON.stringify(this.stats)}`);
         await this.postprocess(imf, gltfPath);
-        if(scene.extras && scene.extras.computedCenter){
-            return Promise.resolve({computedCenter: scene.extras.computedCenter})
-        }
-        else if(scene.extras && scene.extras.metadataCenter){
-            return Promise.resolve({metadataCenter: scene.extras.metadataCenter})
+        if(scene.extras){
+            const extras = {
+                computedCenter: scene.extras.computedCenter ? scene.extras.computedCenter : [],
+                metadataCenter: scene.extras.metadataCenter ? scene.extras.metadataCenter : [],
+                appliedCenter: scene.extras.appliedCenter ? scene.extras.appliedCenter : [],
+            }
+            return Promise.resolve(extras)
         }
         return Promise.resolve(null)
     }
@@ -283,8 +285,9 @@ export class Writer {
                 if(!scene.extras){
                     scene.extras = {}
                 }
-                scene.extras.computedCenter = [-center.x, -center.y, -center.z]
-            } else if(metadata["world bounding box"]){
+                scene.extras.computedCenter = [-center.x, -center.y, -center.z];
+                scene.extras.appliedCenter = scene.extras.computedCenter
+            } if(metadata["world bounding box"]){
                 const boundsMin = metadata['world bounding box'].minXYZ;
                 const boundsMax = metadata['world bounding box'].maxXYZ;
                 if (boundsMin && boundsMax) {
@@ -302,7 +305,10 @@ export class Writer {
                     if(!scene.extras){
                         scene.extras = {}
                     }
-                    scene.extras.metadataCenter = [-translation[0], -translation[1], -translation[2]]
+                    scene.extras.metadataCenter = [-translation[0], -translation[1], -translation[2]];
+                    if(!scene.extras.appliedCenter){
+                        scene.extras.appliedCenter = scene.extras.metadataCenter
+                    }
                 }
             }
         }
@@ -318,6 +324,7 @@ export class Writer {
                     0, 0, 1, 0,
                     x, y, z, 1
                 ];
+                scene.extras.appliedCenter = [x, y, z]
             }
         }
 
