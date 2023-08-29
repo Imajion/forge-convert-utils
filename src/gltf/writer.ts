@@ -26,6 +26,7 @@ export interface IWriterOptions {
     skipUnusedUvs?: boolean; /** Skip unused tex coordinates. */
     center?: boolean; /** Move the model to origin. */
     centerOnTranslation?: number[] /** Will use these coordinates to center a model */
+    applyMeterConversion?: boolean /** If true, code will assume that centerOnTranslation is in meters */
     log?: (msg: string) => void; /** Optional logging function. */
     filter?: (dbid: number, fragid: number) => boolean;
 }
@@ -77,6 +78,7 @@ export class Writer {
             skipUnusedUvs: !!options.skipUnusedUvs,
             center: !!options.center,
             centerOnTranslation: isNullOrUndefined(options.centerOnTranslation) ? [] : options.centerOnTranslation,
+            applyMeterConversion: !!options.applyMeterConversion,
             log: (options && options.log) || function (msg: string) {},
             filter: options && options.filter || ((dbid: number, fragid: number) => true)
         };
@@ -317,6 +319,10 @@ export class Writer {
             }
         }
         else if(this.options.centerOnTranslation.length > 0){
+            if(!this.options.applyMeterConversion){
+                //backcompat. If false, assume that centerOnTranslation is NOT in meters
+                scale = 1;
+            }
             const [x, y, z] = this.options.centerOnTranslation
             if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') {
                 console.error("X, y or Z not a number")
