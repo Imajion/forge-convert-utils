@@ -302,12 +302,14 @@ export class Writer {
                     ];
                     //convert to meters
                     const calculatedCenter:number[] = [-translation[0]*scale, -translation[1]*scale, -translation[2]*scale]
-                    xformNode.matrix = [
-                        1, 0, 0, 0,
-                        0, 1, 0, 0,
-                        0, 0, 1, 0,
-                        calculatedCenter[0], calculatedCenter[1], calculatedCenter[2], 1
-                    ];
+                    if(!xformNode.matrix){
+                        xformNode.matrix = [
+                            1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            calculatedCenter[0], calculatedCenter[1], calculatedCenter[2], 1
+                        ];
+                    }
                     if(!scene.extras){
                         scene.extras = {}
                     }
