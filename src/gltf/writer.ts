@@ -279,16 +279,16 @@ export class Writer {
             if (!totalBounds.empty) {
                 const center = totalBounds.getCenter();
                 //convert to meters
-                const calculatedCenter:number[] = [-center.x*scale, -center.y*scale, -center.z*scale]
                 xformNode.matrix = [
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    calculatedCenter[0], calculatedCenter[1], calculatedCenter[2], 1
+                    -center.x, -center.y, -center.z, 1
                 ];
                 if(!scene.extras){
                     scene.extras = {}
                 }
+                const calculatedCenter:number[] = [-center.x*scale, -center.y*scale, -center.z*scale]
                 scene.extras.computedCenter = [calculatedCenter[0], calculatedCenter[1], calculatedCenter[2]];
                 scene.extras.appliedCenter = scene.extras.computedCenter
             } if(metadata["world bounding box"]){
@@ -301,18 +301,18 @@ export class Writer {
                         0.5 * (boundsMin[2] + boundsMax[2])
                     ];
                     //convert to meters
-                    const calculatedCenter:number[] = [-translation[0]*scale, -translation[1]*scale, -translation[2]*scale]
                     if(!xformNode.matrix){
                         xformNode.matrix = [
                             1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
-                            calculatedCenter[0], calculatedCenter[1], calculatedCenter[2], 1
+                            -translation[0], -translation[1], -translation[2], 1
                         ];
                     }
                     if(!scene.extras){
                         scene.extras = {}
                     }
+                    const calculatedCenter:number[] = [-translation[0]*scale, -translation[1]*scale, -translation[2]*scale]
                     scene.extras.metadataCenter = [calculatedCenter[0], calculatedCenter[1], calculatedCenter[2]];
                     if(!scene.extras.appliedCenter){
                         scene.extras.appliedCenter = scene.extras.metadataCenter
