@@ -1,6 +1,7 @@
 import * as path from 'path';
 import crypto from 'crypto';
 import * as fse from 'fs-extra';
+import {createStringifyStream} from 'big-json';
 
 import * as gltf from './schema';
 import { isUndefined, isNullOrUndefined } from 'util';
@@ -176,8 +177,19 @@ export class Writer {
 
     protected async postprocess(imf: IMF.IScene, gltfPath: string) {}
 
-    protected serializeManifest(manifest: gltf.GlTf, outputPath: string) {
-        fse.writeFileSync(outputPath, JSON.stringify(manifest, null, 4));
+    protected serializeManifest(manifest: gltf.GlTf, outputPath: string): Promise<void> {
+        return new Promise(res=>{
+            const stringifyStream = createStringifyStream({
+                body: manifest,
+            });
+            stringifyStream.on('data', function(strChunk: any) {
+                fse.appendFileSync(outputPath, strChunk)
+            });
+            stringifyStream.on('end', function() {
+                return res();
+            });
+        })
+
     }
 
     protected createScene(imf: IMF.IScene, metadataFrontVector: number[] | null): gltf.Scene {

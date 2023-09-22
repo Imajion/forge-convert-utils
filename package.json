@@ -1,6 +1,6 @@
 {
   "name": "forge-convert-utils-sitelink",
-  "version": "4.0.21",
+  "version": "4.0.22",
   "description": "Tools for converting Autodesk Forge file formats.",
   "main": "lib/index.js",
   "bin": {
@@ -31,6 +31,7 @@
   "homepage": "https://github.com/petrbroz/forge-convert-utils#readme",
   "devDependencies": {
     "@types/adm-zip": "^0.4.32",
+    "@types/big-json": "^3.2.1",
     "@types/fs-extra": "^9.0.13",
     "gltf-validator": "^2.0.0-dev.3.2",
     "typedoc": "^0.22.11",
@@ -38,6 +39,7 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.9",
+    "big-json": "github:Imajion/big-json",
     "commander": "^3.0.2",
     "forge-server-utils-sitelink": "^9.0.0",
     "fs-extra": "^10.0.0"
