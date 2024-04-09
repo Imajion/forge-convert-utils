@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.3] - 2024-04-09
+
+- Modified
+  - Increased the minimum required Node.js version to 16
+
+## [5.0.0] - 2024-04-09
+
+- Modified
+  - **[BREAKING CHANGE]** Library has been renamed from `forge-convert-utils` to `svf-utils`
+  - **[BREAKING CHANGE]** SVF readers and downloaders now expect an `IAuthenticationProvider` interface
+  for specifying how the requests to the Model Derivative service will be authenticated
+  - Changed branding from Forge to APS everywhere
+  - Migrated to the official APS SDKs
+
+## [4.0.5] - 2023-09-29
+
+- Added
+  - SVF materials that are not referenced by anything are excluded from the glTF output
+
 ## [4.0.4] - 2023-08-08
 
 - Added

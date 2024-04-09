@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { IAuthOptions, Region } from 'forge-server-utils-sitelink/dist/common';
 import { PropDbReader } from '../common/propdb-reader';
 import * as SVF from './schema';
 import * as IMF from '../common/intermediate-format';
+import { IAuthenticationProvider } from '../common/authentication-provider';
 /**
  * Entire content of SVF and its assets loaded in memory.
  */
@@ -47,13 +47,13 @@ export interface IReaderOptions {
  * individual SVF objects using methods like {@link readFragments} or {@link enumerateGeometries}.
  *
  * @example
- * const auth = { client_id: 'forge client id', client_secret: 'forge client secreet' };
- * const reader = await Reader.FromDerivativeService('model urn', 'viewable guid', auth);
+ * const authProvider = new TwoLeggedAuthenticationProvider(APS_CLIENT_ID, APS_CLIENT_SECRET);
+ * const reader = await Reader.FromDerivativeService(MODEL_URN, VIEWABLE_GUID, authProvider);
  * const scene = await reader.read(); // Read entire scene into an intermediate, in-memory representation
  * console.log(scene);
  *
  * @example
- * const reader = await Reader.FromFileSystem('path/to/svf');
+ * const reader = await Reader.FromFileSystem('path/to/output.svf');
  * // Enumerate fragments (without building a list of all of them)
  * for await (const fragment of reader.enumerateFragments()) {
  *   console.log(fragment);
@@ -69,17 +69,17 @@ export declare class Reader {
      */
     static FromFileSystem(filepath: string): Promise<Reader>;
     /**
-     * Instantiates new reader for an SVF in Forge Model Derivative service.
+     * Instantiates new reader for an SVF in APS Model Derivative service.
      * @async
-     * @param {string} urn Forge model URN.
-     * @param {string} guid Forge viewable GUID. The viewable(s) can be found in the manifest
+     * @param {string} urn APS model URN.
+     * @param {string} guid APS viewable GUID. The viewable(s) can be found in the manifest
      * with type: 'resource', role: 'graphics', and mime: 'application/autodesk-svf'.
-     * @param {IAuthOptions} auth Credentials or access token for accessing the Model Derivative service.
-     * @param {string} host Optional host URL to be used by all Forge calls.
-     * @param {Region} region Optional region to be used by all Forge calls.
+     * @param {IAuthenticationProvider} authenticationProvider Authentication provider for accessing the Model Derivative service.
+     * @param {string} host Optional host URL to be used by all APS calls.
+     * @param {string} region Optional region to be used by all APS calls.
      * @returns {Promise<Reader>} Reader for the provided SVF.
      */
-    static FromDerivativeService(urn: string, guid: string, auth: IAuthOptions, host?: string, region?: Region): Promise<Reader>;
+    static FromDerivativeService(urn: string, guid: string, authenticationProvider: IAuthenticationProvider, host?: string, region?: string): Promise<Reader>;
     protected svf: SVF.ISvfRoot;
     protected constructor(svf: Buffer, resolve: (uri: string) => Promise<Buffer>);
     /**

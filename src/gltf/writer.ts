@@ -58,6 +58,7 @@ export class Writer {
     protected bufferViewHashes = new Map<string, number>(); // List of hashes of existing gltf.BufferView objects, used for deduplication
     protected accessorHashes = new Map<string, number>(); // List of hashes of existing gltf.Accessor objects, used for deduplication
     protected pendingTasks: Promise<void>[] = [];
+    protected activeSvfMaterials: number[]; // List of SVF material IDs that are actually used during the glTF serialization (used to avoid serializing unused materials)
     protected stats: IWriterStats = {
         materialsDeduplicated: 0,
         meshesDeduplicated: 0,
@@ -89,6 +90,7 @@ export class Writer {
         this.bufferStream = null;
         this.bufferSize = 0;
         this.baseDir = '';
+        this.activeSvfMaterials = [];
     }
 
     /**
@@ -143,8 +145,8 @@ export class Writer {
         this.manifest = {
             asset: {
                 version: '2.0',
-                generator: 'forge-convert-utils',
-                copyright: '2019 (c) Autodesk'
+                generator: 'svf-utils',
+                copyright: '2024 (c) Autodesk'
             },
             extensionsUsed: [
                 "KHR_texture_transform"
@@ -167,6 +169,7 @@ export class Writer {
         this.bufferViewHashes = new Map<string, number>();
         this.accessorHashes = new Map<string, number>();
         this.pendingTasks = [];
+        this.activeSvfMaterials = [];
         this.stats = {
             materialsDeduplicated: 0,
             meshesDeduplicated: 0,
@@ -360,8 +363,8 @@ export class Writer {
         if (this.options.deduplicate) {
             const hashes: string[] = [];
             const newMaterialIndices = new Uint16Array(imf.getMaterialCount());
-            for (let i = 0, len = imf.getMaterialCount(); i < len; i++) {
-                const material = imf.getMaterial(i);
+            for (const [i, activeMaterialID] of this.activeSvfMaterials.entries()) {
+                const material = imf.getMaterial(activeMaterialID);
                 const hash = this.computeMaterialHash(material);
                 const match = hashes.indexOf(hash);
                 if (match === -1) {
@@ -385,8 +388,8 @@ export class Writer {
                 }
             }
         } else {
-            for (let i = 0, len = imf.getMaterialCount(); i < len; i++) {
-                const material = imf.getMaterial(i);
+            for (const activeMaterialID of this.activeSvfMaterials) {
+                const material = imf.getMaterial(activeMaterialID);
                 const mat = this.createMaterial(material, imf);
                 manifestMaterials.push(mat);
             }
@@ -440,8 +443,13 @@ export class Writer {
                 break;
         }
         if (mesh && mesh.primitives.length > 0) {
+            let materialID = this.activeSvfMaterials.indexOf(fragment.material);
+            if (materialID === -1) {
+                materialID = this.activeSvfMaterials.length;
+                this.activeSvfMaterials.push(fragment.material);
+            }
             for (const primitive of mesh.primitives) {
-                primitive.material = fragment.material;
+                primitive.material = materialID;
             }
             node.mesh = this.addMesh(mesh);
         }
@@ -742,7 +750,7 @@ export class Writer {
             pbrMetallicRoughness: {
                 baseColorFactor: [diffuse.x, diffuse.y, diffuse.z, 1.0],
                 metallicFactor: mat.metallic,
-                roughnessFactor: mat.roughness
+                roughnessFactor: (mat.roughness > 1.0) ? 1.0 : mat.roughness
             }
         };
         if (!isUndefined(mat.opacity) && mat.opacity < 1.0 && material.pbrMetallicRoughness.baseColorFactor) {

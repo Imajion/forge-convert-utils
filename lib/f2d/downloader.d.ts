@@ -1,5 +1,6 @@
-import { ModelDerivativeClient } from 'forge-server-utils-sitelink';
-import { IAuthOptions } from 'forge-server-utils-sitelink/dist/common';
+import { ModelDerivativeClient } from '@aps_sdk/model-derivative';
+import { SdkManager } from '@aps_sdk/autodesk-sdkmanager';
+import { IAuthenticationProvider } from '../common/authentication-provider';
 export interface IDownloadOptions {
     outputDir?: string;
     log?: (message: string) => void;
@@ -10,10 +11,12 @@ export interface IDownloadTask {
     cancel: () => void;
 }
 export declare class Downloader {
-    protected auth: IAuthOptions;
+    protected authenticationProvider: IAuthenticationProvider;
+    protected sdkManager: SdkManager;
     protected modelDerivativeClient: ModelDerivativeClient;
-    constructor(auth: IAuthOptions);
+    constructor(authenticationProvider: IAuthenticationProvider);
     download(urn: string, options?: IDownloadOptions): IDownloadTask;
+    private _downloadDerivative;
     private _download;
 }
 //# sourceMappingURL=downloader.d.ts.map

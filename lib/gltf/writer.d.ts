@@ -35,6 +35,7 @@ export declare class Writer {
     protected bufferViewHashes: Map<string, number>;
     protected accessorHashes: Map<string, number>;
     protected pendingTasks: Promise<void>[];
+    protected activeSvfMaterials: number[];
     protected stats: IWriterStats;
     /**
      * Initializes the writer.
