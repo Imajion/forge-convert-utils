@@ -253,7 +253,6 @@ export class Reader {
         }
 
         async function downloadDerivative(urn: string, derivativeUrn: string) {
-            const accessToken = await authenticationProvider.getToken([Scopes.ViewablesRead]);
             const downloadInfo = await modelDerivativeClient.getDerivativeUrl(accessToken, derivativeUrn, urn);
             const response = await axios.get(downloadInfo.url as string, { responseType: 'arraybuffer', decompress: false });
             return response.data;
