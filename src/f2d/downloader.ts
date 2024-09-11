@@ -2,12 +2,12 @@ import * as path from 'path';
 import * as zlib from 'zlib';
 import * as fse from 'fs-extra';
 import axios from 'axios';
-import { ManifestDerivativesChildren, ModelDerivativeClient } from '@aps_sdk/model-derivative';
-import { SdkManager, SdkManagerBuilder } from '@aps_sdk/autodesk-sdkmanager';
+import { ManifestResources, ModelDerivativeClient, Region } from '@aps_sdk/model-derivative';
 import { IAuthenticationProvider } from '../common/authentication-provider';
 import { Scopes } from '@aps_sdk/authentication';
 
 export interface IDownloadOptions {
+    region?: Region;
     outputDir?: string;
     log?: (message: string) => void;
     failOnMissingAssets?: boolean;
@@ -26,13 +26,9 @@ interface IDownloadContext {
 }
 
 export class Downloader {
-    protected sdkManager: SdkManager;
-    protected modelDerivativeClient: ModelDerivativeClient;
+    protected readonly modelDerivativeClient = new ModelDerivativeClient();
 
-    constructor(protected authenticationProvider: IAuthenticationProvider) {
-        this.sdkManager = SdkManagerBuilder.create().build();
-        this.modelDerivativeClient = new ModelDerivativeClient(this.sdkManager);
-    }
+    constructor(protected authenticationProvider: IAuthenticationProvider) {}
 
     download(urn: string, options?: IDownloadOptions): IDownloadTask {
         const context: IDownloadContext = {
@@ -42,24 +38,32 @@ export class Downloader {
             failOnMissingAssets: !!options?.failOnMissingAssets
         };
         return {
-            ready: this._download(urn, context),
+            ready: this._download(urn, context, options?.region),
             cancel: () => { context.cancelled = true; }
         };
     }
 
-    private async _downloadDerivative(urn: string, derivativeUrn: string) {
-        const accessToken = await this.authenticationProvider.getToken([Scopes.ViewablesRead]);
-        const downloadInfo = await this.modelDerivativeClient.getDerivativeUrl(accessToken, derivativeUrn, urn);
-        const response = await axios.get(downloadInfo.url as string, { responseType: 'arraybuffer', decompress: false });
-        return response.data;
+    private async _downloadDerivative(urn: string, derivativeUrn: string, region?: Region) {
+        try {
+            const accessToken = await this.authenticationProvider.getToken([Scopes.ViewablesRead]);
+            const downloadInfo = await this.modelDerivativeClient.getDerivativeUrl(derivativeUrn, urn, { accessToken, region });
+            const response = await axios.get(downloadInfo.url as string, { responseType: 'arraybuffer', decompress: false });
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Could not download derivative ${derivativeUrn}: ${error.message}`);
+            } else {
+                throw error;
+            }
+        }
     }
 
-    private async _download(urn: string, context: IDownloadContext): Promise<void> {
-        context.log(`Downloading derivative ${urn}`);
+    private async _download(urn: string, context: IDownloadContext, region?: Region): Promise<void> {
+        context.log(`Downloading derivative ${urn} (region: ${region || 'default'})`);
         const accessToken = await this.authenticationProvider.getToken([Scopes.ViewablesRead]);
-        const manifest = await this.modelDerivativeClient.getManifest(accessToken, urn);
-        let derivatives: ManifestDerivativesChildren[] = [];
-        function collectDerivatives(derivative: ManifestDerivativesChildren) {
+        const manifest = await this.modelDerivativeClient.getManifest(urn, { accessToken, region });
+        let derivatives: ManifestResources[] = [];
+        function collectDerivatives(derivative: ManifestResources) {
             if (derivative.type === 'resource' && derivative.role === 'graphics' && (derivative as any).mime === 'application/autodesk-f2d') {
                 derivatives.push(derivative);
             }
@@ -87,7 +91,7 @@ export class Downloader {
             fse.ensureDirSync(guidDir);
             const derivativeUrn = (derivative as any).urn;
             const baseUrn = derivativeUrn.substr(0, derivativeUrn.lastIndexOf('/'));
-            const manifestGzip = await this._downloadDerivative(urn, baseUrn + '/manifest.json.gz');
+            const manifestGzip = await this._downloadDerivative(urn, baseUrn + '/manifest.json.gz', region);
             fse.writeFileSync(path.join(guidDir, 'manifest.json.gz'), new Uint8Array(manifestGzip as Buffer));
             const manifestGunzip = zlib.gunzipSync(manifestGzip);
             const manifest = JSON.parse(manifestGunzip.toString());
@@ -97,7 +101,7 @@ export class Downloader {
                 }
                 context.log(`Downloading asset ${asset.URI}`);
                 try {
-                    const assetData = await this._downloadDerivative(urn, baseUrn + '/' + asset.URI);
+                    const assetData = await this._downloadDerivative(urn, baseUrn + '/' + asset.URI, region);
                     fse.writeFileSync(path.join(guidDir, asset.URI), new Uint8Array(assetData));
                 } catch (err) {
                     if (context.failOnMissingAssets) {

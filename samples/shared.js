@@ -1,24 +1,12 @@
-const axios = require('axios').default;
 const { SdkManagerBuilder } = require('@aps_sdk/autodesk-sdkmanager');
 const { AuthenticationClient, Scopes } = require('@aps_sdk/authentication');
 const { ModelDerivativeClient } = require('@aps_sdk/model-derivative');
 
-async function downloadDerivative(urn, derivativeUrn, clientId, clientSecret) {
-    const sdkManager = SdkManagerBuilder.create().build();
-    const authenticationClient = new AuthenticationClient(sdkManager);
-    const modelDerivativeClient = new ModelDerivativeClient(sdkManager);
+async function getSvfDerivatives(urn, clientId, clientSecret, region) {
+    const authenticationClient = new AuthenticationClient(SdkManagerBuilder.create().build());
+    const modelDerivativeClient = new ModelDerivativeClient();
     const credentials = await authenticationClient.getTwoLeggedToken(clientId, clientSecret, [Scopes.ViewablesRead]);
-    const downloadInfo = await modelDerivativeClient.getDerivativeUrl(credentials.access_token, derivativeUrn, urn);
-    const response = await axios.get(downloadInfo.url, { responseType: 'arraybuffer', decompress: false });
-    return response.data;
-}
-
-async function getSvfDerivatives(urn, clientId, clientSecret) {
-    const sdkManager = SdkManagerBuilder.create().build();
-    const authenticationClient = new AuthenticationClient(sdkManager);
-    const modelDerivativeClient = new ModelDerivativeClient(sdkManager);
-    const credentials = await authenticationClient.getTwoLeggedToken(clientId, clientSecret, [Scopes.ViewablesRead]);
-    const manifest = await modelDerivativeClient.getManifest(credentials.access_token, urn);
+    const manifest = await modelDerivativeClient.getManifest(urn, { accessToken: credentials.access_token, region });
     const derivatives = [];
     function traverse(derivative) {
         if (derivative.type === 'resource' && derivative.role === 'graphics' && derivative.mime === 'application/autodesk-svf') {
@@ -41,6 +29,5 @@ async function getSvfDerivatives(urn, clientId, clientSecret) {
 }
 
 module.exports = {
-    downloadDerivative,
     getSvfDerivatives
 };
