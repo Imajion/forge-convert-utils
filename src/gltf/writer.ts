@@ -125,7 +125,7 @@ export class Writer {
             delete this.manifest.images;
 
         const gltfPath = path.join(this.baseDir, 'output.gltf');
-        this.serializeManifest(this.manifest, gltfPath);
+        await this.serializeManifest(this.manifest, gltfPath);
         this.options.log(`Closing gltf output: done`);
         this.options.log(`Stats: ${JSON.stringify(this.stats)}`);
         await this.postprocess(imf, gltfPath);
@@ -575,7 +575,8 @@ export class Writer {
         let colorAccessorID: number | undefined = undefined;
         const colors = geometry.getColors();
         if (colors) {
-            const colorBufferView = this.createBufferView(Buffer.from(colors.buffer, colors.byteOffset, colors.byteLength));
+            const normalizedColors = colors.map(c => c / 255.0);
+            const colorBufferView = this.createBufferView(Buffer.from(normalizedColors.buffer, normalizedColors.byteOffset, normalizedColors.byteLength));
             const colorBufferViewID = this.addBufferView(colorBufferView);
             const colorAccessor = this.createAccessor(colorBufferViewID, 5126, colorBufferView.byteLength / 4 / 3, 'VEC3');
             colorAccessorID = this.addAccessor(colorAccessor);
@@ -740,7 +741,6 @@ export class Writer {
     }
 
     protected createMaterial(mat: IMF.Material | null, imf: IMF.IScene): gltf.MaterialPbrMetallicRoughness {
-        // console.log('writing material', mat)
         if (!mat) {
             return DefaultMaterial;
         }
