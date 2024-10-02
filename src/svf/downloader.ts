@@ -95,7 +95,7 @@ export class Downloader {
             fse.writeFileSync(path.join(guidDir, 'output.svf'), new Uint8Array(svf));
             const reader = await SvfReader.FromDerivativeService(urn, guid, this.authenticationProvider, region);
             const manifest = await reader.getManifest();
-            for (const asset of manifest.assets) {
+            const assetPromises = manifest.assets.map((asset) => (async () => {
                 if (context.cancelled) {
                     return;
                 }
@@ -115,7 +115,8 @@ export class Downloader {
                         }
                     }
                 }
-            }
+            })());
+            await Promise.all(assetPromises);
         }
     }
 }
